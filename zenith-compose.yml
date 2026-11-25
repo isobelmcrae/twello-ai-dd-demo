@@ -1,0 +1,62 @@
+services:
+  app:
+    build: .
+    environment:
+      NODE_ENV: production
+      PGHOST: db
+      PGPORT: "5432"
+      PGUSER: twello
+      PGDATABASE: twello
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: twello
+      POSTGRES_DB: twello
+    volumes:
+      - twello_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U twello -d twello"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  twello_db:
+
+x-zenith:
+  catalog:
+    name: Twello
+    description: A single-tenant kanban board app where tasks are sticky notes you move between private, shareable boards.
+    authors:
+      - isobelmcrae
+    tags:
+      - kanban
+      - productivity
+      - project-management
+    source: https://github.com/isobelmcrae/twello-ai-dd-demo
+    license: MIT
+  expose:
+    - service: app
+      port: 3000
+      web: true
+  storage:
+    database:
+      volume: twello_db
+      label: Database
+      description: PostgreSQL data for Twello users, sessions, boards, lists, and tasks.
+  env:
+    BETTER_AUTH_SECRET:
+      generate: '([A-Za-z0-9_-]{16})([A-Za-z0-9_-]{16})'
+      services: [app]
+    DB_PASSWORD:
+      generate: '([A-Za-z0-9_-]{16})([A-Za-z0-9_-]{16})'
+      services: [app, db]
+    POSTGRES_PASSWORD:
+      alias: DB_PASSWORD
+      services: [db]
+    PGPASSWORD:
+      alias: DB_PASSWORD
+      services: [app]
