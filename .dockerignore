@@ -1,8 +1,15 @@
 node_modules
 .next
 .git
+.github
+.agents
 .env*
 !.env.example
 .audit
 artifacts
+coverage
 *.tsbuildinfo
+*.log
+Dockerfile*
+compose.dev.yml
+zenith-compose.yml
